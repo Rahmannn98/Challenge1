@@ -3,12 +3,12 @@ import Observation
 
 @Observable
 final class PracticeSetupViewModel {
-    let topic: Topic
+    let topic: SpeakingTopic
     var selectedMinutes = 1
     var selectedSeconds = 0
     var currentQuestion: String
 
-    init(topic: Topic) {
+    init(topic: SpeakingTopic) {
         self.topic = topic
         self.currentQuestion = topic.starterQuestion
     }

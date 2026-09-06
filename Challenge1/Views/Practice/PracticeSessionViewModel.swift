@@ -7,6 +7,7 @@ final class PracticeSessionViewModel {
     let branch: PracticeBranch
     let question: String
     let totalDuration: Int
+    let prepStages = PREPStage.allCases
 
     var elapsedSeconds = 0
     var timerSessionID = UUID()
@@ -34,6 +35,10 @@ final class PracticeSessionViewModel {
 
     var remainingTime: Int {
         max(totalDuration - elapsedSeconds, 0)
+    }
+
+    var remainingTimeString: String {
+        TimeFormatter.practiceTime(remainingTime)
     }
 
     var statusText: String {

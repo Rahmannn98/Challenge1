@@ -4,7 +4,7 @@ import Observation
 @Observable
 final class HomeViewModel {
     var profile: UserProfile
-    var topics: [Topic]
+    var topics: [SpeakingTopic]
     var newTopicTitle = ""
 
     let heroTitle: String
@@ -12,7 +12,7 @@ final class HomeViewModel {
 
     init(
         profile: UserProfile = UserProfile(displayName: "Rahman"),
-        topics: [Topic] = TopicPreset.allCases.map(\.topic),
+        topics: [SpeakingTopic] = TopicPreset.allCases.map(\.topic),
         heroTitle: String = "Practice English",
         heroSubtitle: String = "Pick a topic, prepare a question, and start speaking."
     ) {
@@ -40,16 +40,19 @@ final class HomeViewModel {
         guard canAddTopic else { return }
 
         topics.append(
-            Topic(
+            SpeakingTopic(
                 title: trimmedTopicTitle,
+                subtitle: "Custom speaking practice topic",
+                symbolName: "sparkles",
                 imageName: "Monyet2",
+                accentColorName: "mint",
                 questions: ["Tell me more about \(trimmedTopicTitle)."]
             )
         )
         newTopicTitle = ""
     }
 
-    func deleteTopic(_ topic: Topic) {
+    func deleteTopic(_ topic: SpeakingTopic) {
         topics.removeAll { $0.id == topic.id }
     }
 

@@ -35,6 +35,7 @@ struct PracticeActionButton: View {
 private struct ActionButtonModifier: ViewModifier {
     let style: PracticeActionButton.Style
 
+    @ViewBuilder
     func body(content: Content) -> some View {
         switch style {
         case .primary:
