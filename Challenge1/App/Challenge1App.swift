@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct Challenge1App: App {
+    @State private var sessionStore = PracticeSessionStore()
     init() {
         AppFontRegistrar.registerFonts()
     }
@@ -16,6 +17,7 @@ struct Challenge1App: App {
     var body: some Scene {
         WindowGroup {
             OnboardingRootView()
+                .environment(sessionStore)
         }
     }
 }
