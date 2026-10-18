@@ -2,223 +2,246 @@ import SwiftUI
 
 struct PracticeSetupView: View {
     @State private var viewModel: PracticeSetupViewModel
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     init(topic: SpeakingTopic) {
         _viewModel = State(initialValue: PracticeSetupViewModel(topic: topic))
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 22) {
-                    hero
-                    topicIntro
-                    durationCard
-                    questions
-                }
-                .padding(.horizontal, AppSpacing.screen)
-                .padding(.bottom, 104)
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.card + 6) {
+                hero
+                topicIntro
+                durationCard
+                questions
             }
-            .appScreenBackground()
-
-            NavigationLink {
-                PracticeSessionView(
-                    viewModel: PracticeSessionViewModel(
-                        topicTitle: viewModel.topic.title,
-                        branch: .generalPractice,
-                        question: viewModel.currentQuestion,
-                        totalDuration: viewModel.totalDuration
-                    )
-                )
-            } label: {
-                Label("Start Practice", systemImage: "arrow.right")
-                    .font(.jakarta(16, weight: .bold))
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 17)
-            }
-            .practicePrimaryAction()
             .padding(.horizontal, AppSpacing.screen)
-            .padding(.bottom, 18)
+            .padding(.bottom, AppSpacing.card)
         }
-        .navigationBarBackButtonHidden(true)
-        .toolbar(.hidden, for: .navigationBar)
-        .font(.jakarta(15))
+        .scrollIndicators(.hidden)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            startPracticeSection
+        }
+        .appScreenBackground()
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .tint(Color.appPrimary)
+        .font(.jakarta(15, relativeTo: .body))
+    }
+
+    private var startPracticeSection: some View {
+        startPracticeButton
+            .padding(.horizontal, AppSpacing.screen)
+            .padding(.vertical, 12)
+            .background(
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .ignoresSafeArea(edges: .bottom)
+            )
+    }
+
+    private var startPracticeButton: some View {
+        NavigationLink {
+            PracticeSessionView(
+                viewModel: PracticeSessionViewModel(
+                    topicTitle: viewModel.topic.title,
+                    branch: .generalPractice,
+                    question: viewModel.currentQuestion,
+                    totalDuration: viewModel.totalDuration
+                )
+            )
+        } label: {
+            Label("Start Practice", systemImage: "arrow.right")
+                .font(.jakarta(16, relativeTo: .headline, weight: .bold))
+                .foregroundStyle(Color.white)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 17)
+        }
+        .practicePrimaryAction()
+        .accessibilityHint("Begins a timed practice session with the selected question.")
     }
 
     private var hero: some View {
-        ZStack(alignment: .top) {
-            RoundedRectangle(cornerRadius: 0)
-                .fill(
-                    LinearGradient(
-                        colors: [viewModel.topic.accentColor.background, Color.themeTertiary],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+        ZStack {
+            LinearGradient(
+                colors: [
+                    viewModel.topic.accentColor.background,
+                    Color.brandLavender.opacity(0.3)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
             Image(viewModel.topic.imageName)
                 .resizable()
                 .scaledToFit()
-                .frame(height: 185)
-                .padding(.top, 28)
-
-            HStack {
-                iconButton("chevron.left") {
-                    dismiss()
-                }
-
-                Spacer()
-
-                iconButton("heart.fill") {}
-            }
-            .padding(.top, 20)
-            .padding(.horizontal, 2)
+                .frame(maxHeight: heroImageHeight)
+                .padding(.vertical, 14)
+                .accessibilityHidden(true)
         }
-        .frame(height: 250)
-        .padding(.horizontal, -AppSpacing.screen)
+        .frame(height: heroHeight)
+        .clipShape(.rect(cornerRadius: AppRadius.extraLarge))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadius.extraLarge, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.6), lineWidth: 1)
+        )
     }
 
     private var topicIntro: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(viewModel.topic.title)
-                .font(.jakarta(28, weight: .bold))
-                .foregroundStyle(Color.themePrimary)
+                .font(.jakarta(30, relativeTo: .largeTitle, weight: .bold))
+                .foregroundStyle(Color.appTextPrimary)
+                .accessibilityAddTraits(.isHeader)
 
             Text("Share your thoughts, experiences, and opinions about \(viewModel.topic.title.lowercased()).")
-                .font(.jakarta(14, weight: .medium))
-                .foregroundStyle(Color.themeSecondary)
+                .font(.jakarta(15, relativeTo: .subheadline, weight: .medium))
+                .foregroundStyle(Color.appTextSecondary)
                 .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 10) {
-                infoChip("chart.bar.fill", "Beginner", .themeQuaternary)
-                infoChip("folder.fill", "5+ topics", .themeSky)
-                infoChip("flame.fill", "Popular", .themePeach)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    metadataBadges
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    metadataBadges
+                }
             }
+            .padding(.top, 4)
         }
+        .padding(.vertical, 2)
+    }
+
+    @ViewBuilder
+    private var metadataBadges: some View {
+        infoChip(
+            symbolName: "chart.bar.fill",
+            title: "Beginner",
+            iconColor: Color.appSuccess,
+            backgroundColor: Color.brandLavender.opacity(0.22)
+        )
+        infoChip(
+            symbolName: "folder.fill",
+            title: "5+ topics",
+            iconColor: Color(red: 0.38, green: 0.42, blue: 0.72),
+            backgroundColor: Color.brandLavender.opacity(0.22)
+        )
+        infoChip(
+            symbolName: "flame.fill",
+            title: "Popular",
+            iconColor: Color(red: 0.78, green: 0.35, blue: 0.45),
+            backgroundColor: Color.brandLavender.opacity(0.22)
+        )
     }
 
     private var durationCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Text("Practice Duration")
-                    .font(.jakarta(17, weight: .bold))
-                    .foregroundStyle(Color.themePrimary)
-
-                Spacer()
-
-                Button {
-                    viewModel.generateQuestion()
-                } label: {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.jakarta(14, weight: .bold))
-                        .foregroundStyle(Color.themePrimary)
-                        .frame(width: 36, height: 36)
-                        .background(Color.themeTertiary)
-                        .clipShape(Circle())
-                }
+        OrbitalDurationPicker(
+            selectedMinutes: $viewModel.selectedMinutes,
+            selectedSeconds: $viewModel.selectedSeconds,
+            formattedDuration: viewModel.formattedDuration,
+            onReset: {
+                viewModel.generateQuestion()
             }
-
-            HStack(spacing: 12) {
-                durationPicker(title: "Min", selection: $viewModel.selectedMinutes, range: 0...59)
-                durationPicker(title: "Sec", selection: $viewModel.selectedSeconds, range: 0...59)
-            }
-
-            Text("Practice time: \(viewModel.formattedDuration)")
-                .font(.jakarta(13, weight: .bold))
-                .foregroundStyle(Color.themePrimary)
-        }
-        .padding(18)
-        .background(Color.white.opacity(0.92))
-        .clipShape(RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous))
-        .shadow(color: Color.themePrimary.opacity(0.06), radius: 16, y: 8)
+        )
     }
 
     private var questions: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Text("Sample Questions")
-                    .font(.jakarta(17, weight: .bold))
-                    .foregroundStyle(Color.themePrimary)
-
-                Spacer()
-
-                Button("See All") {}
-                    .font(.jakarta(13, weight: .bold))
-                    .foregroundStyle(Color(red: 0.54, green: 0.35, blue: 0.82))
-            }
+            Text("Sample Questions")
+                .font(.jakarta(17, relativeTo: .headline, weight: .bold))
+                .foregroundStyle(Color.appTextPrimary)
+                .accessibilityAddTraits(.isHeader)
 
             ForEach(viewModel.topic.questions, id: \.self) { question in
+                let isSelected = question == viewModel.currentQuestion
+
                 Button {
                     viewModel.currentQuestion = question
                 } label: {
                     HStack(spacing: 12) {
-                        Image(systemName: question == viewModel.currentQuestion ? "checkmark.circle.fill" : "circle")
-                            .font(.jakarta(14, weight: .bold))
-                            .foregroundStyle(question == viewModel.currentQuestion ? Color.themeMint : Color.themeSecondary.opacity(0.6))
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .font(.headline)
+                            .foregroundStyle(
+                                isSelected
+                                    ? Color.brandPlum
+                                    : Color.appTextSecondary.opacity(0.4)
+                            )
+                            .accessibilityHidden(true)
 
                         Text(question)
-                            .font(.jakarta(13, weight: .semibold))
-                            .foregroundStyle(Color.themePrimary)
+                            .font(.jakarta(15, relativeTo: .body, weight: isSelected ? .bold : .semibold))
+                            .foregroundStyle(Color.appTextPrimary)
                             .multilineTextAlignment(.leading)
 
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.jakarta(12, weight: .bold))
-                            .foregroundStyle(Color.themeSecondary)
+                        Spacer(minLength: 0)
                     }
                     .padding(15)
-                    .background(Color.white.opacity(0.95))
-                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.medium, style: .continuous))
-                    .shadow(color: Color.themePrimary.opacity(0.05), radius: 10, y: 5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        isSelected ? Color.appSurfaceSecondary : Color.white.opacity(0.95),
+                        in: .rect(cornerRadius: AppRadius.medium)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadius.medium, style: .continuous)
+                            .strokeBorder(
+                                isSelected ? Color.brandPlum.opacity(0.35) : Color.brandLavender.opacity(0.2),
+                                lineWidth: isSelected ? 1.5 : 1
+                            )
+                    )
+                    .shadow(
+                        color: Color.brandPlum.opacity(isSelected ? 0.06 : 0.03),
+                        radius: 8,
+                        y: 4
+                    )
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(question)
+                .accessibilityValue(isSelected ? "Selected" : "Not selected")
+                .accessibilityHint("Uses this question when practice starts.")
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
     }
 
-    private func iconButton(_ symbolName: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private var heroHeight: CGFloat {
+        if dynamicTypeSize.isAccessibilitySize {
+            return 164
+        }
+        return verticalSizeClass == .compact ? 176 : 250
+    }
+
+    private var heroImageHeight: CGFloat {
+        if dynamicTypeSize.isAccessibilitySize {
+            return 112
+        }
+        return verticalSizeClass == .compact ? 128 : 185
+    }
+
+    private func infoChip(
+        symbolName: String,
+        title: String,
+        iconColor: Color,
+        backgroundColor: Color
+    ) -> some View {
+        HStack(spacing: 6) {
             Image(systemName: symbolName)
-                .font(.jakarta(15, weight: .bold))
-                .foregroundStyle(symbolName == "heart.fill" ? Color(red: 0.92, green: 0.25, blue: 0.32) : Color.themePrimary)
-                .frame(width: 42, height: 42)
-                .background(Color.white.opacity(0.88))
-                .clipShape(Circle())
-        }
-    }
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(iconColor)
 
-    private func infoChip(_ symbolName: String, _ title: String, _ color: Color) -> some View {
-        Label(title, systemImage: symbolName)
-            .font(.jakarta(12, weight: .bold))
-            .foregroundStyle(Color.themePrimary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(color.opacity(0.78))
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.medium, style: .continuous))
-    }
-
-    private func durationPicker(title: String, selection: Binding<Int>, range: ClosedRange<Int>) -> some View {
-        VStack(spacing: 6) {
             Text(title)
-                .font(.jakarta(12, weight: .bold))
-                .foregroundStyle(Color.themeSecondary)
-
-            Picker(title, selection: selection) {
-                ForEach(Array(range), id: \.self) { value in
-                    Text(String(format: "%02d", value))
-                        .font(.jakarta(16, weight: .bold))
-                        .tag(value)
-                }
-            }
-            .pickerStyle(.wheel)
-            .frame(maxWidth: .infinity)
-            .frame(height: 92)
-            .background(Color.themeTertiary)
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.medium, style: .continuous))
+                .font(.jakarta(12, relativeTo: .caption, weight: .bold))
+                .foregroundStyle(Color.appTextPrimary)
         }
+        .padding(.horizontal, 11)
+        .padding(.vertical, 7)
+        .background(backgroundColor, in: Capsule())
+        .accessibilityElement(children: .combine)
     }
 }
 
