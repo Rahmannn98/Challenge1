@@ -18,7 +18,7 @@ final class PracticeSessionViewModel {
     var isPaused = false
     var isRecording = false
     var transcript = ""
-    var errorMessage: String?
+    var alert: PracticeSessionAlert?
     var showsResult = false
     var completedSession: PracticeSessionRecord?
 
@@ -39,19 +39,19 @@ final class PracticeSessionViewModel {
         do {
             try await transcriber.start(); try await recorder.startRecording()
             sessionStartedAt = .now; isRecording = true; startTimer()
-        } catch { transcriber.stop(); errorMessage = error.localizedDescription }
+        } catch { transcriber.stop(); alert = PracticeSessionAlert(message: error.localizedDescription) }
     }
 
     func togglePause() {
         guard isRecording else { return }
         do { if isPaused { try recorder.resumeRecording() } else { recorder.pauseRecording() }; isPaused.toggle() }
-        catch { errorMessage = error.localizedDescription }
+        catch { alert = PracticeSessionAlert(message: error.localizedDescription) }
     }
 
-    func finish() {
+    func finish() async {
         guard completedSession == nil else { return }
         timerTask?.cancel()
-        let recordedDuration = recorder.stopRecording()
+        let recordedDuration = await recorder.stopRecording()
         transcriber.stop(); isRecording = false
         let duration = recordedDuration > 0 ? recordedDuration : Date.now.timeIntervalSince(sessionStartedAt ?? .now)
         let cleanTranscript = (transcript.isEmpty ? transcriber.transcript : transcript)
@@ -70,8 +70,13 @@ final class PracticeSessionViewModel {
                 guard let self, !Task.isCancelled else { return }
                 guard !self.isPaused else { continue }
                 self.elapsedSeconds += 1
-                if self.elapsedSeconds >= self.totalDuration { self.finish(); return }
+                if self.elapsedSeconds >= self.totalDuration { await self.finish(); return }
             }
         }
     }
+}
+
+struct PracticeSessionAlert: Identifiable {
+    let id = UUID()
+    let message: String
 }

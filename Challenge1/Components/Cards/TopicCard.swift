@@ -1,3 +1,4 @@
+
 import SwiftUI
 
 struct TopicCard: View {
@@ -7,59 +8,104 @@ struct TopicCard: View {
         let style = TopicCardStyle.style(for: topic)
 
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: AppRadius.medium, style: .continuous)
-                        .fill(style.iconBackground)
-
-                    Image(systemName: topic.symbolName)
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(style.iconForeground)
-                }
-                .frame(width: 48, height: 48)
-
+            HStack(alignment: .top, spacing: 8) {
                 Spacer(minLength: 0)
 
+                Image(systemName: topic.symbolName)
+                    .font(.system(size: 76, weight: .regular))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(style.iconForeground)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 150)
+                    .accessibilityHidden(true)
+
+                Spacer(minLength: 0)
+            }
+            .overlay(alignment: .topTrailing) {
                 Image(systemName: "chevron.right")
-                    .font(.jakarta(12, relativeTo: .caption, weight: .bold))
+                    .font(
+                        .jakarta(
+                            14,
+                            relativeTo: .caption,
+                            weight: .bold
+                        )
+                    )
                     .foregroundStyle(style.iconForeground.opacity(0.8))
                     .padding(.top, 4)
+                    .accessibilityHidden(true)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(topic.title)
-                    .font(.jakarta(17, relativeTo: .headline, weight: .bold))
+                    .font(
+                        .jakarta(
+                            20,
+                            relativeTo: .title3,
+                            weight: .bold
+                        )
+                    )
                     .foregroundStyle(style.titleColor)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(topic.subtitle)
-                    .font(.jakarta(12, relativeTo: .caption, weight: .medium))
+                    .font(
+                        .jakarta(
+                            13,
+                            relativeTo: .subheadline,
+                            weight: .medium
+                        )
+                    )
                     .foregroundStyle(style.subtitleColor)
-                    .lineLimit(2)
+                    .lineLimit(3)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 0)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, minHeight: 156, alignment: .leading)
-        .background(style.background)
-        .clipShape(RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: AppRadius.large, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.65), lineWidth: 1)
+        .padding(20)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .topLeading
         )
-        .shadow(color: Color.brandPlum.opacity(0.04), radius: 10, y: 5)
+        .background(style.background)
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: AppRadius.large,
+                style: .continuous
+            )
+        )
+        .overlay {
+            RoundedRectangle(
+                cornerRadius: AppRadius.large,
+                style: .continuous
+            )
+            .strokeBorder(
+                Color.white.opacity(0.65),
+                lineWidth: 1
+            )
+        }
+        .shadow(
+            color: Color.brandPlum.opacity(0.04),
+            radius: 10,
+            y: 5
+        )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(topic.title), \(topic.subtitle)")
-        .accessibilityHint("Opens practice setup for \(topic.title).")
+        .accessibilityHint(
+            "Opens practice setup for \(topic.title)."
+        )
     }
 }
 
 #Preview {
     HStack(spacing: 12) {
         TopicCard(topic: TopicPreset.education.topic)
+            .frame(width: 280, height: 290)
+
         TopicCard(topic: TopicPreset.career.topic)
+            .frame(width: 280, height: 290)
     }
     .padding()
     .background(Color.appBackground)
